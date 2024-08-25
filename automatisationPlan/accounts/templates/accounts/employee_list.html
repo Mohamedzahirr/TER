@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes employés</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        body, html {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+
+        .container {
+            padding: 50px 0;
+        }
+
+        .team-section {
+            text-align: center;
+            padding: 50px 0;
+            background: #ffffff;
+        }
+
+        .team-section h2 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .employee-card {
+            background: #fff;
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            margin: 10px;
+        }
+
+        .employee-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .employee-card img {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 50%;
+            margin-top: 15px;
+        }
+
+        .employee-card-body {
+            padding: 20px;
+        }
+
+        .employee-card-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .employee-card-text {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .employee-card-actions a,
+        .employee-card-actions form {
+            display: inline-block;
+            margin: 5px 0;
+        }
+
+        .employee-card-actions form {
+            margin-left: 5px;
+        }
+
+        .search-bar {
+            margin-bottom: 20px;
+        }
+
+        .no-results {
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <section class="team-section">
+        <div class="container">
+            <h2>Mes employés</h2>
+
+            {% if messages %}
+                <div class="alert-container">
+                    {% for message in messages %}
+                        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <input type="text" id="searchInput" class="form-control search-bar" onkeyup="searchEmployees()" placeholder="Rechercher un employé...">
+            <div class="row" id="employeesContainer">
+                {% for employee in employees %}
+                    <div class="col-lg-4 col-md-6 mb-4 employee-card-container">
+                        <div class="employee-card">
+                            {% if employee.photo %}
+                                <img src="{{ employee.photo.url }}" alt="Photo de {{ employee.first_name }}">
+                            {% else %}
+                                <img src="https://via.placeholder.com/150" alt="Placeholder Image">
+                            {% endif %}
+                            <div class="employee-card-body">
+                                <h5 class="employee-card-title">{{ employee.first_name }} {{ employee.last_name }}</h5>
+                                <p class="employee-card-text">{{ employee.email }}</p>
+                                <p class="employee-card-text">Code de pointage : {{ employee.pointage_code }}</p>
+                                <div class="employee-card-actions">
+                                    <a href="{% url 'edit_employee' employee.pk %}" class="btn btn-outline-primary btn-sm">Modifier</a>
+                                    <a href="{% url 'view_availabilities' employee.pk %}" class="btn btn-outline-secondary btn-sm">Disponibilités</a>
+                                    <form method="post" action="{% url 'delete_employee' employee.pk %}" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet employé ?');">Supprimer</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-center no-results">Aucun employé trouvé.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    <script>
+        function searchEmployees() {
+            var input, filter, container, cards, card, i, txtValue;
+            input = document.getElementById('searchInput');
+            filter = input.value.toLowerCase();
+            container = document.getElementById('employeesContainer');
+            cards = container.getElementsByClassName('employee-card-container');
+            
+            for (i = 0; i < cards.length; i++) {
+                card = cards[i];
+                txtValue = card.textContent || card.innerText;
+                if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                    card.style.display = "";
+                } else {
+                    card.style.display = "none";
+                }
+            }
+
+            var noResults = document.querySelector('.no-results');
+            var visibleCards = Array.from(cards).filter(card => card.style.display !== "none");
+            if (visibleCards.length === 0) {
+                noResults.style.display = "block";
+            } else {
+                noResults.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>

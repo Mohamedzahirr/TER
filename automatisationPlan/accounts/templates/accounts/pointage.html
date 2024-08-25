@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pointage</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            max-width: 400px;
+            width: 100%;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .form-control {
+            height: 50px;
+            font-size: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .digit-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .digit-button {
+            width: 70px;
+            height: 70px;
+            font-size: 24px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            transition: background-color 0.3s, transform 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+            text-align: center;
+        }
+        .digit-button:hover {
+            background-color: #0056b3;
+            transform: scale(1.1);
+        }
+        .btn-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s, transform 0.3s;
+            color: white;
+        }
+        .btn-success {
+            background-color: #28a745;
+        }
+        .btn-success:hover {
+            background-color: #218838;
+            transform: translateY(-3px);
+        }
+        .btn-danger {
+            background-color: #dc3545;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+            transform: translateY(-3px);
+        }
+        .btn-warning {
+            background-color: #ffc107;
+            color: black;
+        }
+        .btn-warning:hover {
+            background-color: #e0a800;
+            transform: translateY(-3px);
+        }
+        .btn-primary {
+            margin-top: 20px;
+            width: 100%;
+            background-color: #007bff;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+            transform: translateY(-3px);
+        }
+        .btn-delete {
+            background-color: #ff4d4d;
+        }
+        .btn-delete:hover {
+            background-color: #cc0000;
+            transform: scale(1.1);
+        }
+        .alert {
+            font-size: 16px;
+            margin-bottom: 20px;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Pointage</h1>
+
+        <!-- Affichage des messages de succès ou d'erreur -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags in 'error' or message.tags == 'danger' %}alert-danger{% else %}alert-info{% endif %}" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <input type="password" id="pointage_code" name="pointage_code" class="form-control" placeholder="Code de pointage" readonly>
+                    </div>
+                    <div class="digit-container">
+                        {% for digit in "123456789" %}
+                            <button type="button" class="digit-button" onclick="addDigit('{{ digit }}')">{{ digit }}</button>
+                        {% endfor %}
+                        <button type="button" class="digit-button" style="grid-column: 2 / 3;" onclick="addDigit('0')">0</button>
+                        <button type="button" class="digit-button btn-delete" style="grid-column: 3 / 4;" onclick="deleteLastDigit()">Supp</button>
+                    </div>
+                    <div class="btn-container">
+                        <button type="submit" name="clock_in" class="btn btn-success">Pointer</button>
+                        <button type="submit" name="clock_out" class="btn btn-danger">Dépointer</button>
+                        <button type="submit" name="team_lead" class="btn btn-warning">Chef d'équipe</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <button class="btn btn-primary" onclick="window.location.href='{% url 'home' %}'">Retour à l'accueil</button>
+    </div>
+    <script>
+        function addDigit(digit) {
+            var codeInput = document.getElementById('pointage_code');
+            codeInput.value += digit;
+        }
+        function deleteLastDigit() {
+            var codeInput = document.getElementById('pointage_code');
+            codeInput.value = codeInput.value.slice(0, -1);
+        }
+    </script>
+</body>
+</html>

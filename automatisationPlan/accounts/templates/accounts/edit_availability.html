@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modifier Disponibilité</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 600px;
+        }
+        h2 {
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        select, input[type="time"], input[type="checkbox"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+        }
+        button:disabled {
+            background-color: #ccc;
+        }
+    </style>
+    <script>
+        function toggleAvailability() {
+            var notAvailableCheckbox = document.getElementById('not-available');
+            var allDayCheckbox = document.getElementById('all-day');
+            var startTime = document.getElementById('start-time');
+            var endTime = document.getElementById('end-time');
+
+            if (notAvailableCheckbox.checked) {
+                allDayCheckbox.disabled = true;
+                startTime.disabled = true;
+                endTime.disabled = true;
+            } else {
+                allDayCheckbox.disabled = false;
+                if (allDayCheckbox.checked) {
+                    startTime.disabled = true;
+                    endTime.disabled = true;
+                } else {
+                    startTime.disabled = false;
+                    endTime.disabled = false;
+                }
+            }
+        }
+
+        function initToggleAvailability() {
+            toggleAvailability();
+        }
+    </script>
+</head>
+<body onload="initToggleAvailability()">
+    <div class="container">
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        <h2>Modifier Disponibilité pour {{ availability.day_of_week }}</h2>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="not-available" name="not_available" onclick="toggleAvailability()" {% if not availability.start_time %}checked{% endif %}>
+                    Pas disponible ce jour
+                </label>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="all-day" name="all_day" onclick="toggleAvailability()" {% if availability.start_time == '00:00:00' and availability.end_time == '23:59:00' %}checked{% endif %}>
+                    Disponible toute la journée
+                </label>
+            </div>
+            <div class="form-group">
+                <label for="start-time">Heure de début</label>
+                <input type="time" id="start-time" name="start_time" value="{{ availability.start_time|slice:':5' }}">
+            </div>
+            <div class="form-group">
+                <label for="end-time">Heure de fin</label>
+                <input type="time" id="end-time" name="end_time" value="{{ availability.end_time|slice:':5' }}">
+            </div>
+            <div class="buttons">
+                <button type="submit">Enregistrer</button>
+                <a href="{% url 'view_availabilities' availability.user.pk %}" style="text-decoration: none;">
+                    <button type="button">Annuler</button>
+                </a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,480 @@
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page d'Accueil</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --nav-width: 250px;
+            --primary-color: #007bff;
+            --secondary-color: #ffffff;
+            --font-family: Arial, sans-serif;
+            --scrollbar-bg: #f9f9f9;
+            --scrollbar-thumb: #007bff;
+            --scrollbar-thumb-hover: #0056b3;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            transition: margin-left 0.3s;
+        }
+        .header {
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+            padding: 1rem;
+            text-align: center;
+            animation: slideIn 1s ease-out;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .openbtn {
+            font-size: 24px;
+            cursor: pointer;
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-left: 20px;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        .navbar {
+            position: fixed;
+            font-family: 'Poppins', sans-serif;
+            top: 0;
+            left: -250px;
+            width: var(--nav-width);
+            height: 100%;
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+            transition: 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+        .navbar-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-top: 60px;
+        }
+        .navbar-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        .navbar-content::-webkit-scrollbar-track {
+            background: var(--scrollbar-bg);
+        }
+        .navbar-content::-webkit-scrollbar-thumb {
+            background-color: var(--scrollbar-thumb);
+            border-radius: 10px;
+        }
+        .navbar-content::-webkit-scrollbar-thumb:hover {
+            background-color: var(--scrollbar-thumb-hover);
+        }
+        .navbar a {
+            padding: 15px 25px;
+            text-decoration: none;
+            font-size: 18px;
+            color: var(--secondary-color);
+            display: block;
+            transition: 0.3s;
+        }
+        .navbar a:hover {
+            background-color: #0056b3;
+        }
+        .navbar .active {
+            background-color: #0056b3;
+        }
+        .navbar .notification-badge {
+            position: relative;
+            top: -10px;
+            right: -10px;
+            padding: 5px 10px;
+            border-radius: 50%;
+            background: red;
+            color: white;
+        }
+        .submenu {
+            display: none;
+            padding-left: 20px;
+        }
+        .submenu a {
+            font-size: 16px;
+        }
+        #main {
+            transition: margin-left 0.3s;
+            padding: 16px;
+        }
+        .container {
+            margin-top: 20px;
+        }
+        button {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+        form {
+            display: inline-block;
+        }
+        form button {
+            margin: 0;
+        }
+        .nav_icon {
+            margin-right: 10px;
+        }
+        .logout {
+            padding: 20px;
+            background-color: var(--primary-color);
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+        }
+        .toggle-btn {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .toggle-btn i {
+            transition: transform 0.3s;
+        }
+        .submenu.show {
+            display: block;
+        }
+        .team-container, .team-leads-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            background-color: #ffffff;
+        }
+        .team-member, .team-lead {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            width: calc(33.333% - 20px);
+            box-sizing: border-box;
+        }
+        .team-member img, .team-lead img {
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            margin-bottom: 10px;
+        }
+        .view-all-btn {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .schedule-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .schedule-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;  /* Center align the buttons vertically */
+            width: 100%;
+            max-width: 1200px;
+            padding: 10px 0;
+            gap: 10px;  /* Add spacing between the elements */
+        }
+        .schedule-header h2 {
+            margin: 0;
+            color: #333;
+        }
+        .schedule-table {
+            display: grid;
+            grid-template-columns: 200px repeat(7, 1fr) auto; /* Ajouté une colonne supplémentaire */
+            gap: 10px;
+            width: 100%;
+            max-width: 1400px; /* Augmenté la largeur maximale pour accommoder la nouvelle colonne */
+        }
+        .schedule-cell, .schedule-header-cell {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+        }
+        .schedule-header-cell {
+            background: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+        .employee-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 5px;
+        }
+        .employee-cell img {
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            margin-bottom: 10px;
+        }
+        .employee-cell .employee-role {
+            font-size: 12px;
+            color: #666;
+        }
+        .shift {
+            background: #f0f0f0;
+            border-radius: 5px;
+            padding: 5px;
+            margin: 5px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 5px;  /* Ajoute un peu d'espace entre les shifts */
+        }
+        .shift .shift-time {
+            font-size: 14px;
+        }
+        .shift .shift-role {
+            font-size: 12px;
+        }
+        .shift:last-child {
+            margin-bottom: 0;  /* Supprime la marge pour le dernier shift */
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <button class="openbtn" onclick="openNav()">☰</button>
+        <h1>Bienvenue dans votre espace de gestion des plannings et des équipes</h1>
+    </header>
+
+    <div id="myNavbar" class="navbar">
+        <div class="navbar-content">
+            <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+            {% if user.is_authenticated %}
+                {% if user.role != 'manager' %}
+                    <a href="{% url 'profile' %}"><i class='bx bx-user nav_icon'></i>Mon Profil</a>
+                    <a href="{% url 'view_availabilities' user.pk %}"><i class='bx bx-calendar-check nav_icon'></i>Mes Disponibilités</a>
+                    <a href="{% url 'submit_leave_request' %}"><i class='bx bx-calendar-plus nav_icon'></i>Demande de Congé</a>
+                    <a href="{%  url 'view_schedule' %}"><i class='bx bx-calendar nav_icon'></i>Voir le Planning</a>
+
+                    <a href="{% url 'leave_request_list' %}"><i class='bx bx-history nav_icon'></i>Historique des Congés</a>
+                    <a href="{% url 'work_hours' %}"><i class='bx bx-time nav_icon'></i>Voir les Heures Travaillées</a>
+                    <a href="{% url 'notification_list' %}"><i class='bx bx-bell nav_icon'></i>Voir les notifications {% if notification_count > 0 %}<span class="notification-badge">{{ notification_count }}</span>{% endif %}</a>
+
+                {% endif %}
+                {% if user.role == 'manager' %}
+                    <a href="{% url 'create_user' %}"><i class='bx bx-user-plus nav_icon'></i>Créer un compte</a>
+                    <a href="{% url 'employee_list' %}"><i class='bx bx-group nav_icon'></i>Mes employés</a>
+                    <a href="{% url 'team_lead_list' %}"><i class='bx bx-user-circle nav_icon'></i>Mes chefs d'équipe</a>
+                    <div>
+                        <a class="toggle-btn" onclick="toggleSubmenu('constraints')"><i class='bx bx-task nav_icon'></i>Contraintes <i class='bx bx-chevron-down'></i></a>
+                        <div class="submenu" id="constraints">
+                            <a href="{% url 'constraints_list' %}">Horaire de travail</a>
+                          <!--  <a href="{% url 'add_constraint' %}">Ajouter des contraintes</a>  -->
+                            <a href="{% url 'manage_employee_requirements' %}">Gérer les besoins en employés</a>
+                        </div>
+                    </div>
+                    <div>
+                        <a class="toggle-btn" onclick="toggleSubmenu('planning')"><i class='bx bx-calendar nav_icon'></i>Planning <i class='bx bx-chevron-down'></i></a>
+                        <div class="submenu" id="planning">
+                            <a href="{% url 'view_schedule' %}">Voir le planning</a>
+                            <a href="{% url 'generate_schedule' %}">Générer le Planning</a>
+                        </div>
+                    </div>
+                    <a href="{% url 'pointage' %}"><i class='bx bx-check-circle nav_icon'></i>Pointage</a>
+                    <a href="{% url 'manager_employee_hours' %}"><i class='bx bx-time nav_icon'></i>Heures travaillées</a>
+
+                    <a href="{% url 'manager_leave_requests' %}"><i class='bx bx-calendar-exclamation nav_icon'></i>Demandes de Congé</a>
+                    <a href="{% url 'notification_list' %}"><i class='bx bx-bell nav_icon'></i>Voir les notifications {% if notification_count > 0 %}<span class="notification-badge">{{ notification_count }}</span>{% endif %}</a>
+                {% endif %}
+            {% else %}
+                <a href="{% url 'login' %}"><i class='bx bx-log-in nav_icon'></i>Connexion</a>
+                <a href="{% url 'signup' %}"><i class='bx bx-user-plus nav_icon'></i>Inscription</a>
+            {% endif %}
+        </div>
+        {% if user.is_authenticated %}
+        <div class="logout">
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit"><i class='bx bx-log-out nav_icon'></i>Déconnexion</button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+
+    <div id="main">
+        <main>
+           <!--  {% if messages %}
+                <div class="container mt-3">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}-->
+            <div class="container">
+                <h2>Tableau de Bord</h2>
+
+
+                {% if user.is_authenticated and user.role != 'manager' %}
+        <h3>Mon planning de la semaine courante</h3>
+        <div class="schedule-container">
+            <div class="schedule-table">
+                <div class="schedule-header-cell">Employé</div>
+                {% for day in days %}
+                    <div class="schedule-header-cell">{{ day }}</div>
+                {% endfor %}
+                <div class="schedule-header-cell">Total Heures</div>
+
+                <div class="schedule-cell employee-cell">
+                    {% if user.photo %}
+                    <img src="{{ user.photo.url }}" alt="Photo de {{ user.first_name }}">
+                    {% else %}
+                    <img src="https://via.placeholder.com/150" alt="Placeholder Image">
+                    {% endif %}
+                    <span>{{ user.first_name }} {{ user.last_name }}</span>
+                    <div class="employee-role">{{ user.get_role_display }}</div>
+                </div>
+
+                {% for day in days %}
+                <div class="schedule-cell">
+                    {% with shifts=current_week_schedule|get_item:day %}
+                        {% if shifts %}
+                            {% for shift in shifts %}
+                                <div class="shift shift-blue">
+                                    <div class="shift-time">{{ shift.start_time }} - {{ shift.end_time }}</div>
+                                    <div class="shift-role">{{ shift.hours }} heures</div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="shift">
+                                -
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                {% endfor %}
+
+                <div class="schedule-cell total-hours-cell">
+                    {{ total_hours|floatformat:2 }} heures
+                </div>
+            </div>
+        </div>
+    {% endif %}
+                
+                {% if user.role == 'manager' %}
+
+                <h3>Membres de l'équipe</h3>
+                <div class="team-container">
+                    {% for employee in employees %}
+                    <div class="team-member">
+                        <a href="{% url 'edit_employee' employee.pk %}">
+                            {% if employee.photo %}
+                            <img src="{{ employee.photo.url }}" alt="Photo de {{ employee.first_name }}">
+                            {% else %}
+                            <img src="https://via.placeholder.com/150" alt="Placeholder Image">
+                            {% endif %}
+                            <div>{{ employee.first_name }}</div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="view-all-btn">
+                    <a href="{% url 'employee_list' %}" class="btn btn-primary">Voir tous les employés</a>
+                </div>
+
+                <h3>Chefs d'équipe</h3>
+                <div class="team-leads-container">
+                    {% for team_lead in team_leads %}
+                    <div class="team-lead">
+                        <a href="{% url 'edit_team_lead' team_lead.pk %}">
+                            {% if team_lead.photo %}
+                            <img src="{{ team_lead.photo.url }}" alt="Photo de {{ team_lead.first_name }}">
+                            {% else %}
+                            <img src="https://via.placeholder.com/150" alt="Placeholder Image">
+                            {% endif %}
+                            <div>{{ team_lead.first_name }}</div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="view-all-btn">
+                    <a href="{% url 'team_lead_list' %}" class="btn btn-primary">Voir tous les chefs d'équipe</a>
+                </div>    
+                {% endif %}
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function openNav() {
+            document.getElementById("myNavbar").style.left = "0";
+            document.getElementById("main").style.marginLeft = "250px";
+        }
+
+        function closeNav() {
+            document.getElementById("myNavbar").style.left = "-250px";
+            document.getElementById("main").style.marginLeft= "0";
+        }
+
+        function toggleSubmenu(id) {
+            const submenu = document.getElementById(id);
+            const chevron = submenu.previousElementSibling.querySelector('.bx-chevron-down');
+            submenu.classList.toggle('show');
+            chevron.style.transform = submenu.classList.contains('show') ? 'rotate(180deg)' : 'rotate(0)';
+        }
+    </script>
+</body>
+</html>

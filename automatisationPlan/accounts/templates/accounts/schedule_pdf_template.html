@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Planning</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 5px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .total-hours {
+            font-weight: bold;
+            background-color: #e6e6e6;
+        }
+    </style>
+</head>
+<body>
+    <h1>Planning de la semaine du {{ start_date }} au {{ end_date }}</h1>
+    <table>
+        <tr>
+            <th>Employés</th>
+            {% for day in days %}
+                <th>{{ day }}</th>
+            {% endfor %}
+            <th>Total Heures</th>
+        </tr>
+        {% for employee in employee_schedules %}
+            <tr>
+                <td>{{ employee.name }}</td>
+                {% for day_shifts in employee.shifts %}
+                    <td>
+                        {% if day_shifts.shifts %}
+                            {% for shift in day_shifts.shifts %}
+                                {{ shift.start_time }} - {{ shift.end_time }}
+                                ({{ shift.hours }} heures)<br>
+                            {% endfor %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                {% endfor %}
+                <td class="total-hours">{{ employee.total_hours|floatformat:2 }} heures</td>
+            </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

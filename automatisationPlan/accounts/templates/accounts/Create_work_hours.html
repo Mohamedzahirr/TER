@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heures Travaillées</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1>Heures Travaillées</h1>
+        <form method="post" action="{% url 'work_hours_detail' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="period">Sélectionnez une période:</label>
+                <select id="period" name="period" class="form-control">
+                    <option value="weekly">Hebdomadaire</option>
+                    <option value="monthly">Mensuel</option>
+                </select>
+            </div>
+            <div id="monthPicker" class="form-group" style="display: none;">
+                <label for="month">Sélectionnez un mois:</label>
+                <input type="month" id="month" name="month" class="form-control">
+            </div>
+            <button type="submit" class="btn btn-primary">Voir</button>
+        </form>
+        <button class="btn btn-secondary mt-3" onclick="window.location.href='{% url 'home' %}'">Retour à l'accueil</button>
+    </div>
+    <script>
+        document.getElementById('period').addEventListener('change', function() {
+            var monthPicker = document.getElementById('monthPicker');
+            if (this.value === 'monthly') {
+                monthPicker.style.display = 'block';
+            } else {
+                monthPicker.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

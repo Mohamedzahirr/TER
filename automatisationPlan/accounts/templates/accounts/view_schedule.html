@@ -1,0 +1,360 @@
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+    <title>Voir le Planning</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        label, input, button {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px;
+        }
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+        .schedule-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .schedule-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;  /* Center align the buttons vertically */
+            width: 100%;
+            max-width: 1200px;
+            padding: 10px 0;
+            gap: 10px;  /* Add spacing between the elements */
+        }
+        .schedule-header h2 {
+            margin: 0;
+            color: #333;
+        }
+        .schedule-table {
+            display: grid;
+            grid-template-columns: 200px repeat(7, 1fr) auto; /* Ajouté une colonne supplémentaire */
+            gap: 10px;
+            width: 100%;
+            max-width: 1400px; /* Augmenté la largeur maximale pour accommoder la nouvelle colonne */
+        }
+        .schedule-cell, .schedule-header-cell {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+        }
+        .schedule-header-cell {
+            background: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+        .employee-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 5px;
+        }
+        .employee-cell img {
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            margin-bottom: 10px;
+        }
+        .employee-cell .employee-role {
+            font-size: 12px;
+            color: #666;
+        }
+        .shift {
+            background: #f0f0f0;
+            border-radius: 5px;
+            padding: 5px;
+            margin: 5px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 5px;  /* Ajoute un peu d'espace entre les shifts */
+        }
+        .shift .shift-time {
+            font-size: 14px;
+        }
+        .shift .shift-role {
+            font-size: 12px;
+        }
+        .shift:last-child {
+            margin-bottom: 0;  /* Supprime la marge pour le dernier shift */
+        }
+        .btn {
+            padding: 8px 15px;  /* Reduced padding for a smaller button */
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+
+        }
+        
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+            width: auto; /* Assurez-vous que la largeur s'adapte au texte */
+
+        }
+        
+        .btn-secondary {
+            background-color: #008CBA;
+            color: white;
+
+        }
+        
+        .btn:hover {
+            opacity: 0.8;
+            transform: translateY(-2px);
+        }
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        .editable {
+            background-color: #ffffd0;
+        }
+        .total-hours-cell {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        .date-selection-form {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+    
+    </style>
+</head>
+<body>
+<h1>Voir le Planning</h1>
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li class="{{ message.tags }}">{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+<form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <label for="start_date">Semaine (lundi):</label>
+    {{ form.start_date }}
+    {% if form.start_date.errors %}
+    <div style="color: red;">{{ form.start_date.errors }}</div>
+    {% endif %}
+    <button type="submit" class="btn">Voir</button>
+</form>
+
+{% if user.is_authenticated %}
+    {% if employees %}
+    <div class="schedule-container">
+        {% if employee_schedules %}
+        <div class="schedule-header">
+            <h2>Planning de la semaine du {{ start_date }} au {{ end_date }}</h2>
+            {% if user.role == 'manager' %}
+                <a href="{% url 'download_schedule_pdf' %}?start_date={{ start_date|date:'Y-m-d' }}" class="btn btn-primary">Télécharger en PDF</a>
+                <button id="modify-schedule" class="btn btn-primary">Modifier planning</button>
+            {% endif %}
+        </div>
+        <div id="schedule-table" class="schedule-table">
+            <div class="schedule-header-cell">Employés</div>
+            {% for day in days %}
+                <div class="schedule-header-cell">{{ day }}</div>
+            {% endfor %}
+            <div class="schedule-header-cell">Total Heures</div>
+
+            {% for employee in employees %}
+                <div class="schedule-cell employee-cell">
+                    {% if employee.photo %}
+                    <img src="{{ employee.photo.url }}" alt="Photo de {{ employee.first_name }}">
+                    {% else %}
+                    <img src="https://via.placeholder.com/150" alt="Placeholder Image">
+                    {% endif %}
+                    <span>{{ employee.first_name }} {{ employee.last_name }}</span>
+                    <div class="employee-role">{{ employee.get_role_display }}</div>
+                </div>
+
+                {% for day in days %}
+                <div class="schedule-cell" data-employee-id="{{ employee.pk }}" data-day="{{ day }}">
+                    {% with shifts=employee_schedules|get_item:employee.pk|get_item:day %}
+                        {% if shifts %}
+                            {% for shift in shifts %}
+                                <div class="shift shift-blue">
+                                    <div class="shift-time">{{ shift.start_time }} - {{ shift.end_time }}</div>
+                                    <div class="shift-role">{{ shift.hours }} heures</div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="shift">
+                                -
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                {% endfor %}
+
+                <div class="schedule-cell total-hours-cell">
+                    {{ employee_total_hours|get_item:employee.pk|floatformat:2 }} heures
+                </div>
+            {% endfor %}
+        </div>
+        {% if user.role == 'manager' %}
+            <button id="save-changes" style="display: none;" class="btn btn-success">Enregistrer les modifications</button>
+        {% endif %}
+        {% else %}
+            <p>Pas de planning pour cette semaine.</p>
+        {% endif %}
+    </div>
+    {% else %}
+        <p>Aucun employé trouvé.</p>
+    {% endif %}
+{% else %}
+    <p>Vous devez être connecté pour voir le planning.</p>
+{% endif %}
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const modifyScheduleBtn = document.getElementById('modify-schedule');
+            const saveChangesBtn = document.getElementById('save-changes');
+            const scheduleTable = document.getElementById('schedule-table');
+        
+            function createShiftInputs(startTime, endTime) {
+                return `
+                    <div class="shift-inputs">
+                        <input type="time" class="start-time" value="${startTime || ''}">
+                        <input type="time" class="end-time" value="${endTime || ''}">
+                    </div>
+                `;
+            }
+        
+            if (modifyScheduleBtn) {
+                modifyScheduleBtn.addEventListener('click', function() {
+                    const cells = scheduleTable.querySelectorAll('.schedule-cell:not(.employee-cell):not(.schedule-header-cell)');
+                    cells.forEach(cell => {
+                        const shiftDivs = cell.querySelectorAll('.shift');
+                        let shiftsHtml = '';
+            
+                        shiftDivs.forEach((shiftDiv, index) => {
+                            const shiftTimeDiv = shiftDiv.querySelector('.shift-time');
+                            if (shiftTimeDiv) {
+                                const [startTime, endTime] = shiftTimeDiv.textContent.trim().split(' - ');
+                                shiftsHtml += createShiftInputs(startTime, endTime);
+                            } else if (shiftDiv.textContent.trim() === '-') {
+                                shiftsHtml += createShiftInputs();
+                            }
+                        });
+            
+                        cell.innerHTML = `
+                            <div class="shifts-container">
+                                ${shiftsHtml}
+                            </div>
+                            <button class="add-shift-btn">+</button>
+                        `;
+                    });
+                    this.style.display = 'none';
+                    saveChangesBtn.style.display = 'block';
+                });
+            }
+        
+            scheduleTable.addEventListener('click', function(event) {
+                if (event.target.classList.contains('add-shift-btn')) {
+                    const cell = event.target.closest('.schedule-cell');
+                    const shiftsContainer = cell.querySelector('.shifts-container');
+                    const newShiftInputs = document.createElement('div');
+                    newShiftInputs.className = 'shift-inputs';
+                    newShiftInputs.innerHTML = createShiftInputs();
+                    shiftsContainer.appendChild(newShiftInputs);
+                }
+            });
+        
+            if (saveChangesBtn) {
+                saveChangesBtn.addEventListener('click', function() {
+                    const shifts = [];
+                    const cells = scheduleTable.querySelectorAll('.schedule-cell:not(.employee-cell):not(.schedule-header-cell)');
+                    cells.forEach(cell => {
+                        const employeeId = cell.dataset.employeeId;
+                        const day = cell.dataset.day;
+                        const shiftInputs = cell.querySelectorAll('.shift-inputs');
+                        shiftInputs.forEach(shiftInput => {
+                            const startTime = shiftInput.querySelector('.start-time').value;
+                            const endTime = shiftInput.querySelector('.end-time').value;
+                            if (startTime && endTime) {
+                                shifts.push({employeeId, day, startTime, endTime});
+                            }
+                        });
+                    });
+            
+                    console.log("Shifts to be saved:", shifts);
+            
+                    fetch('{% url "update_schedule" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify({shifts: shifts, start_date: '{{ start_date|date:"Y-m-d" }}'})
+                    })
+                    .then(response => {
+                        console.log("Response status:", response.status);
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log("Data returned from server:", data);
+                        if (data.success) {
+                            alert('Planning mis à jour avec succès');
+                            window.location.reload();
+                        } else {
+                            alert('Erreur lors de la mise à jour du planning: ' + (data.message || 'Raison inconnue'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error during the fetch operation:', error);
+                        alert('Erreur lors de la mise à jour du planning: ' + error.message);
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>

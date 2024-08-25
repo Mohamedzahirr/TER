@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajouter Disponibilité</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1, h2, h3 {
+            text-align: center;
+            color: #333;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+        }
+        select, input[type="time"], input[type="checkbox"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: 'Poppins', sans-serif;
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            color: white;
+        }
+        .btn-primary {
+            background-color: #4CAF50;
+        }
+        .btn-secondary {
+            background-color: #008CBA;
+        }
+        .btn:hover {
+            opacity: 0.8;
+            transform: translateY(-2px);
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ajouter Disponibilité</h1>
+        <div class="form-group">
+            <label for="day-select">Choisir un jour</label>
+            <select id="day-select" onchange="showDayForm(this.value)">
+                <option value="">--Sélectionner un jour--</option>
+                <option value="Monday">Lundi</option>
+                <option value="Tuesday">Mardi</option>
+                <option value="Wednesday">Mercredi</option>
+                <option value="Thursday">Jeudi</option>
+                <option value="Friday">Vendredi</option>
+                <option value="Saturday">Samedi</option>
+                <option value="Sunday">Dimanche</option>
+            </select>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            {% for day in days %}
+            <div id="{{ day }}-form" class="hidden">
+                <h3>{{ day }}</h3>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="{{ day }}-not-available" name="{{ day }}_not_available" onclick="toggleAvailability('{{ day }}')">
+                        Pas disponible ce jour
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="{{ day }}-all-day" name="{{ day }}_all_day" onclick="toggleAvailability('{{ day }}')">
+                        Disponible toute la journée
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label for="{{ day }}-start-time">Heure de début</label>
+                    <input type="time" id="{{ day }}-start-time" name="{{ day }}_start_time">
+                </div>
+                <div class="form-group">
+                    <label for="{{ day }}-end-time">Heure de fin</label>
+                    <input type="time" id="{{ day }}-end-time" name="{{ day }}_end_time">
+                </div>
+            </div>
+            {% endfor %}
+            <div class="buttons">
+                <button type="submit" class="btn btn-primary">Ajouter</button>
+                <a href="{% url 'view_availabilities' user.pk %}" class="btn btn-secondary">Annuler</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function showDayForm(day) {
+            var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            days.forEach(function(d) {
+                document.getElementById(d + '-form').classList.add('hidden');
+            });
+            document.getElementById(day + '-form').classList.remove('hidden');
+        }
+
+        function toggleAvailability(day) {
+            var notAvailableCheckbox = document.getElementById(day + '-not-available');
+            var allDayCheckbox = document.getElementById(day + '-all-day');
+            var startTime = document.getElementById(day + '-start-time');
+            var endTime = document.getElementById(day + '-end-time');
+
+            if (notAvailableCheckbox.checked) {
+                allDayCheckbox.disabled = true;
+                startTime.disabled = true;
+                endTime.disabled = true;
+            } else {
+                allDayCheckbox.disabled = false;
+                if (allDayCheckbox.checked) {
+                    startTime.disabled = true;
+                    endTime.disabled = true;
+                } else {
+                    startTime.disabled = false;
+                    endTime.disabled = false;
+                }
+            }
+        }
+
+        function initToggleAvailability() {
+            var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            days.forEach(function(day) {
+                toggleAvailability(day);
+            });
+        }
+
+        window.onload = initToggleAvailability;
+    </script>
+</body>
+</html>

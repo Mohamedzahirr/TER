@@ -1,0 +1,105 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détails des Heures Travaillées</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2, h3 {
+            color: #333;
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 30px;
+        }
+        h2 {
+            margin-bottom: 20px;
+        }
+        h3 {
+            margin-bottom: 30px;
+            color: #666;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        thead th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tfoot th {
+            background-color: #f2f2f2;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Détails des Heures Travaillées</h1>
+        <h2>{{ period|capfirst }}</h2>
+        {% if period == 'monthly' %}
+            <h3>{{ month|date:"F Y" }}</h3>
+        {% elif period == 'weekly' %}
+            <h3>Semaine du {{ start_date|date:"d F Y" }} au {{ end_date|date:"d F Y" }}</h3>
+        {% endif %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Heures Travaillées</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in work_hours %}
+                    <tr>
+                        <td>{{ entry.date|date:"d F Y" }}</td>
+                        <td>{{ entry.hours|floatformat:2 }} heures</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th>Total</th>
+                    <th>{{ total_hours|floatformat:2 }} heures</th>
+                </tr>
+            </tfoot>
+        </table>
+        <div style="text-align: center;">
+            <a href="{% url 'work_hours' %}" class="btn">Retour</a>
+        </div>
+    </div>
+</body>
+</html>

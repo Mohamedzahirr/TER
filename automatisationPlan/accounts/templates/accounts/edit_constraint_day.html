@@ -1,0 +1,7 @@
+<!-- edit_constraint_day.html -->
+<h1>Modifier les contraintes pour {{ day|capfirst }}</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Enregistrer les modifications</button>
+</form>

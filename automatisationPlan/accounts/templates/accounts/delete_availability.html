@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supprimer Disponibilité</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-around;
+        }
+        button, .cancel-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button {
+            background-color: #dc3545;
+            color: #fff;
+        }
+        button:hover {
+            background-color: #c82333;
+        }
+        .cancel-button {
+            background-color: #6c757d;
+            color: #fff;
+            text-decoration: none;
+        }
+        .cancel-button:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Supprimer Disponibilité</h2>
+        <p>Êtes-vous sûr de vouloir supprimer cette disponibilité ?</p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="buttons">
+                <button type="submit">Supprimer</button>
+                <a href="{% url 'view_availabilities' availability.user.pk %}" class="cancel-button">Annuler</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

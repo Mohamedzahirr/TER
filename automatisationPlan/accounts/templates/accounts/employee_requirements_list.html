@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voir les Besoins en Employés</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f7f9fc;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+            letter-spacing: 1px;
+            animation: fadeIn 1s ease-out;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            animation: slideUp 1s ease-out;
+        }
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #007bff;
+            color: #fff;
+            font-weight: 600;
+        }
+        td {
+            color: #555;
+        }
+        tr:hover {
+            background-color: #f2f2f2;
+        }
+        .center {
+            text-align: center;
+            margin-top: 20px;
+        }
+        button, a {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-top: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            transition: background-color 0.3s, transform 0.3s;
+            font-size: 16px;
+        }
+        button:hover, a:hover {
+            background-color: #0056b3;
+            transform: translateY(-3px);
+        }
+        form {
+            display: inline;
+        }
+        form button {
+            background-color: #dc3545;
+            padding: 8px 15px;
+        }
+        form button:hover {
+            background-color: #c82333;
+        }
+        a.modifier {
+            background-color: transparent;
+            color: #007bff;
+            padding: 8px 15px;
+            border: 1px solid #007bff;
+            border-radius: 5px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        a.modifier:hover {
+            background-color: #007bff;
+            color: #fff;
+        }
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const daysOrder = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+            const tableBody = document.querySelector('tbody');
+            const rows = Array.from(tableBody.querySelectorAll('tr'));
+
+            rows.sort((a, b) => {
+                const dayA = a.cells[0].textContent.trim();
+                const dayB = b.cells[0].textContent.trim();
+                return daysOrder.indexOf(dayA) - daysOrder.indexOf(dayB);
+            });
+
+            rows.forEach(row => tableBody.appendChild(row));
+        });
+    </script>
+</head>
+<body>
+    <h1>Voir les Besoins en Employés</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Jour</th>
+                <th>Heure de début</th>
+                <th>Heure de fin</th>
+                <th>Employés requis</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for requirement in requirements %}
+                {% for shift in requirement.shifts.all %}
+                    <tr>
+                        <td>{{ requirement.get_day_of_week_display }}</td>
+                        <td>{{ shift.start_time|date:"H:i" }}</td>
+                        <td>{{ shift.end_time|date:"H:i" }}</td>
+                        <td>{{ shift.employees_required }}</td>
+                        <td class="center">
+                            <a href="{% url 'edit_employee_requirement' requirement.pk %}" class="modifier">Modifier</a>
+                            <form method="post" action="{% url 'delete_employee_requirement' requirement.pk %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit">Supprimer</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="center">
+        <a id="b" href="{% url 'add_employee_requirement' %}">Ajouter des Besoins</a>
+    </div>
+</body>
+</html>

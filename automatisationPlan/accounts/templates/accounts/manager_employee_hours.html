@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heures Travaillées des Employés</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="month"], input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+
+        a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<div class="container">
+    <h1>Heures Travaillées des Employés</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="month">Mois :</label>
+            <input type="month" id="month" name="month" required value="{{ current_month }}">
+        </div>
+        <div class="form-group">
+            <label for="search">Rechercher un employé :</label>
+            <input type="text" id="search" name="search" placeholder="Nom de l'employé">
+        </div>
+        <button type="submit" class="btn">Afficher</button>
+    </form>
+
+    {% if employee_hours %}
+        <h2>{{ month_display }}</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Employé</th>
+                    <th>Rôle</th>
+                    <th>Heures Travaillées</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for employee in employee_hours %}
+                    <tr>
+                        <td><a href="{{ employee.detail_url }}">{{ employee.name }}</a></td>
+                        <td>{{ employee.role }}</td>
+                        <td>{{ employee.hours|floatformat:2 }} heures</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="3">Aucun employé trouvé</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Sélectionnez un mois pour voir les heures travaillées des employés.</p>
+    {% endif %}
+    
+    <a href="{% url 'home' %}" class="btn" style="margin-top: 20px;">Retour à l'accueil</a>
+</div>
+    <script>
+        document.getElementById('search').addEventListener('input', function() {
+            var searchTerm = this.value.toLowerCase();
+            var rows = document.querySelectorAll('tbody tr');
+            
+            rows.forEach(function(row) {
+                var name = row.querySelector('td').textContent.toLowerCase();
+                if (name.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

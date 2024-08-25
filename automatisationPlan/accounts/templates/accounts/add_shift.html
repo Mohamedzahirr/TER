@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Ajouter un shift pour l'employé #{{ employee_id }} - {{ day }}</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Ajouter</button>
+</form>
+{% endblock %}

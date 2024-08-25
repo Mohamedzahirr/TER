@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voir Disponibilités</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f7fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 40px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 28px;
+            letter-spacing: 1px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            background: linear-gradient(135deg, #e9f5ff, #e3f1ff);
+            border: 1px solid #d1e3f8;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.3s;
+        }
+
+        li:hover {
+            transform: translateY(-5px);
+        }
+
+        .availability-info {
+            flex-grow: 1;
+            font-size: 16px;
+            color: #555;
+        }
+
+        .availability-actions a {
+            text-decoration: none;
+            color: #007bff;
+            transition: color 0.3s, transform 0.3s;
+            font-size: 14px;
+            border: 1px solid #007bff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin-left: 10px;
+            background-color: white;
+        }
+
+        .availability-actions a:hover {
+            color: white;
+            background-color: #007bff;
+            transform: translateY(-3px);
+        }
+
+        .btn-add {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 12px 25px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: background-color 0.3s, transform 0.3s;
+            text-align: center;
+            font-size: 16px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-add:hover {
+            background-color: #218838;
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .no-availability {
+            text-align: center;
+            color: #888;
+            margin-top: 20px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Disponibilités de {{ user.first_name }} {{ user.last_name }}</h2>
+        <ul>
+            {% if availabilities %}
+                {% for availability in availabilities %}
+                    <li>
+                        <div class="availability-info">
+                            {{ availability.day_of_week }} : {{ availability.start_time }} - {{ availability.end_time }}
+                        </div>
+                        <div class="availability-actions">
+                            <a href="{% url 'edit_availability' availability.pk %}">Modifier</a>
+                            <a href="{% url 'delete_availability' availability.pk %}">Supprimer</a>
+                        </div>
+                    </li>
+                {% endfor %}
+            {% else %}
+                <li class="no-availability">Aucune disponibilité trouvée.</li>
+                <p class="no-availability">Veuillez rentrer vos disponibilités.</p>
+                <div class="btn-container">
+                    <a href="{% url 'add_availability' user.pk %}" class="btn-add">Ajouter Disponibilité</a>
+                </div>
+            {% endif %}
+        </ul>
+        {% if availabilities %}
+            <div class="btn-container">
+                <a href="{% url 'add_availability' user.pk %}" class="btn-add">Ajouter une autre disponibilité</a>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
