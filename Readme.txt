@@ -21,7 +21,6 @@ python -m venv venv
 
 Activer l'environnement virtuel :
 Sur Windows :
-Copier le code
 
 venv\Scripts\activate
 
@@ -35,11 +34,8 @@ source venv/bin/activate
 Appliquer les migrations :
 
 python manage.py migrate
-Créer un super utilisateur :
-
 
 Lancer le serveur de développement :
-
 
 python manage.py runserver
 
@@ -52,4 +48,3 @@ http://127.0.0.1:8000/
 
 Utilisation
 Connectez-vous en tant qu'administrateur pour gérer les employés, générer des plannings, et suivre les heures de pointage.
-Les employés peuvent se connecter pour consulter leurs plannings et enregistrer leurs heures de pointage.
