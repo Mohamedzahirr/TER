@@ -456,27 +456,38 @@ class ServiceConstraintsUpdateView(View):
 
 class EmployeeRequirementCreateView(View):
     def get(self, request):
-        return render(request, 'accounts/employee_requirement_form.html')
+        days_of_week = [
+            ('Monday', 'Lundi'),
+            ('Tuesday', 'Mardi'),
+            ('Wednesday', 'Mercredi'),
+            ('Thursday', 'Jeudi'),
+            ('Friday', 'Vendredi'),
+            ('Saturday', 'Samedi'),
+            ('Sunday', 'Dimanche'),
+        ]
+        return render(request, 'accounts/employee_requirement_form.html', {'days_of_week': days_of_week})
 
     def post(self, request):
-        day_of_week = request.POST.get('day_of_week')
+        days_of_week = request.POST.getlist('day_of_week[]')
         start_times = request.POST.getlist('start_time[]')
         end_times = request.POST.getlist('end_time[]')
         employees_required = request.POST.getlist('employees_required[]')
 
-        employee_requirement = EmployeeRequirement.objects.create(
-            user=request.user,
-            day_of_week=day_of_week,
-        )
-
-        for start_time, end_time, employees in zip(start_times, end_times, employees_required):
-            Shift.objects.create(
-                employee_requirement=employee_requirement,
-                start_time=start_time,
-                end_time=end_time,
-                employees_required=employees
+        for day in days_of_week:
+            employee_requirement = EmployeeRequirement.objects.create(
+                user=request.user,
+                day_of_week=day,
             )
 
+            for start_time, end_time, employees in zip(start_times, end_times, employees_required):
+                Shift.objects.create(
+                    employee_requirement=employee_requirement,
+                    start_time=start_time,
+                    end_time=end_time,
+                    employees_required=employees
+                )
+
+        messages.success(request, 'Les besoins en employés ont été ajoutés avec succès.')
         return redirect('manage_employee_requirements')
 
 
@@ -493,35 +504,57 @@ class EmployeeRequirementListView(ListView):
     
 class EmployeeRequirementUpdateView(UpdateView):
     model = EmployeeRequirement
-    form_class = EmployeeRequirementForm
     template_name = 'accounts/employee_requirement_form.html'
+    fields = ['day_of_week']
     success_url = reverse_lazy('manage_employee_requirements')
 
-    def get_queryset(self):
-        return EmployeeRequirement.objects.filter(user=self.request.user)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['shifts'] = self.object.shifts.all()
+        context['days_of_week'] = [
+            ('Monday', 'Lundi'),
+            ('Tuesday', 'Mardi'),
+            ('Wednesday', 'Mercredi'),
+            ('Thursday', 'Jeudi'),
+            ('Friday', 'Vendredi'),
+            ('Saturday', 'Samedi'),
+            ('Sunday', 'Dimanche'),
+        ]
+        return context
 
     def form_valid(self, form):
-        response = super().form_valid(form)
+        self.object = form.save()
         
-        # Supprimez les shifts existants associés à cette requête d'employé
-        self.object.shifts.all().delete()
-
-        # Récupérez les nouvelles données de shift depuis le formulaire
+        shift_ids = self.request.POST.getlist('shift_id[]')
         start_times = self.request.POST.getlist('start_time[]')
         end_times = self.request.POST.getlist('end_time[]')
         employees_required_list = self.request.POST.getlist('employees_required[]')
 
-        # Créez les nouveaux shifts
-        for start_time, end_time, employees_required in zip(start_times, end_times, employees_required_list):
-            if start_time and end_time and employees_required:
-                Shift.objects.create(
-                    employee_requirement=self.object,
-                    start_time=start_time,
-                    end_time=end_time,
-                    employees_required=int(employees_required)
-                )
+        for shift_id, start_time, end_time, employees_required in zip(shift_ids, start_times, end_times, employees_required_list):
+            if shift_id:
+                # Mettre à jour un shift existant
+                shift = Shift.objects.get(id=int(shift_id))
+                shift.start_time = start_time
+                shift.end_time = end_time
+                shift.employees_required = int(employees_required)
+                shift.save()
+            else:
+                # Créer un nouveau shift seulement si tous les champs sont remplis
+                if start_time and end_time and employees_required:
+                    Shift.objects.create(
+                        employee_requirement=self.object,
+                        start_time=start_time,
+                        end_time=end_time,
+                        employees_required=int(employees_required)
+                    )
         
-        return response
+        messages.success(self.request, 'Les besoins en employés ont été mis à jour avec succès.')
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, 'Erreur lors de la mise à jour des besoins en employés. Veuillez vérifier les données saisies.')
+        return super().form_invalid(form)
+
 class EmployeeRequirementDeleteView(DeleteView):
     model = EmployeeRequirement
     template_name = 'accounts/employee_requirement_confirm_delete.html'

@@ -74,43 +74,27 @@
         .shift-container button:hover {
             background-color: #c82333;
         }
-    </style>
-    <script>
-        function addShift() {
-            var container = document.getElementById('shift-container');
-            var shiftDiv = document.createElement('div');
-            shiftDiv.className = 'shift-container';
-            shiftDiv.innerHTML = `
-                <label>Heure de début:</label>
-                <input type="time" name="start_time[]" required>
-                <label>Heure de fin:</label>
-                <input type="time" name="end_time[]" required>
-                <label>Employés requis:</label>
-                <input type="number" name="employees_required[]" min="1" required>
-                <button type="button" onclick="removeShift(this)">Supprimer</button>
-            `;
-            container.appendChild(shiftDiv);
-        }
 
-        function removeShift(button) {
-            button.parentElement.remove();
-        }
-    </script>
+        
+    </style>
+ 
 </head>
 <body>
+    {% block content %}
     <h1>Ajouter des Besoins en Employés</h1>
     <form method="post">
         {% csrf_token %}
-        {{ form.day_of_week.label_tag }}{{ form.day_of_week }}
-
+        {{ form.as_p }}
+        
         <div id="shift-container">
-            {% for shift in object.shifts.all %}
+            {% for shift in shifts %}
             <div class="shift-container">
-                <label>Heure de début:</label>
+                <input type="hidden" name="shift_id[]" value="{{ shift.id }}">
+                <label for="start_time">Heure de début:</label>
                 <input type="time" name="start_time[]" value="{{ shift.start_time|time:'H:i' }}" required>
-                <label>Heure de fin:</label>
+                <label for="end_time">Heure de fin:</label>
                 <input type="time" name="end_time[]" value="{{ shift.end_time|time:'H:i' }}" required>
-                <label>Employés requis:</label>
+                <label for="employees_required">Employés requis:</label>
                 <input type="number" name="employees_required[]" value="{{ shift.employees_required }}" min="1" required>
                 <button type="button" onclick="removeShift(this)">Supprimer</button>
             </div>
@@ -120,5 +104,29 @@
         <button type="button" onclick="addShift()">Ajouter Horaires</button>
         <button type="submit">Enregistrer</button>
     </form>
+    
+    <script>
+    function addShift() {
+        var container = document.getElementById('shift-container');
+        var shiftDiv = document.createElement('div');
+        shiftDiv.className = 'shift-container';
+        shiftDiv.innerHTML = `
+            <input type="hidden" name="shift_id[]" value="">
+            <label for="start_time">Heure de début:</label>
+            <input type="time" name="start_time[]" required>
+            <label for="end_time">Heure de fin:</label>
+            <input type="time" name="end_time[]" required>
+            <label for="employees_required">Employés requis:</label>
+            <input type="number" name="employees_required[]" min="1" required>
+            <button type="button" onclick="removeShift(this)">Supprimer</button>
+        `;
+        container.appendChild(shiftDiv);
+    }
+    
+    function removeShift(button) {
+        button.parentElement.remove();
+    }
+    </script>
+    {% endblock %}
 </body>
 </html>
