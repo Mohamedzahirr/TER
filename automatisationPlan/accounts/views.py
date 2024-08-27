@@ -468,17 +468,19 @@ class EmployeeRequirementCreateView(View):
         return render(request, 'accounts/employee_requirement_form.html', {'days_of_week': days_of_week})
 
     def post(self, request):
-        days_of_week = request.POST.getlist('day_of_week[]')
+        day_of_week = request.POST.get('day_of_week')
         start_times = request.POST.getlist('start_time[]')
         end_times = request.POST.getlist('end_time[]')
         employees_required = request.POST.getlist('employees_required[]')
 
-        for day in days_of_week:
+        if day_of_week and start_times and end_times and employees_required:
+            # Créer un nouvel EmployeeRequirement
             employee_requirement = EmployeeRequirement.objects.create(
                 user=request.user,
-                day_of_week=day,
+                day_of_week=day_of_week,
             )
 
+            # Créer les shifts associés
             for start_time, end_time, employees in zip(start_times, end_times, employees_required):
                 Shift.objects.create(
                     employee_requirement=employee_requirement,
@@ -487,8 +489,12 @@ class EmployeeRequirementCreateView(View):
                     employees_required=employees
                 )
 
-        messages.success(request, 'Les besoins en employés ont été ajoutés avec succès.')
-        return redirect('manage_employee_requirements')
+            messages.success(request, 'Les besoins en employés ont été ajoutés avec succès.')
+            return redirect('manage_employee_requirements')
+        
+        messages.error(request, 'Tous les champs doivent être remplis.')
+        return redirect('add_employee_requirement')
+
 
 
 class EmployeeRequirementListView(ListView):
@@ -1588,3 +1594,6 @@ class EmployeeHoursDetailView(LoginRequiredMixin, View):
                 return JsonResponse({'success': False, 'message': f'Erreur lors de la suppression: {str(e)}'}, status=500)
 
         return JsonResponse({'success': False, 'message': 'Échec de la suppression après plusieurs tentatives.'}, status=500)
+    
+
+    

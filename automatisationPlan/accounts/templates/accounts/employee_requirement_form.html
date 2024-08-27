@@ -84,6 +84,15 @@
     <h1>Ajouter des Besoins en Employés</h1>
     <form method="post">
         {% csrf_token %}
+
+        <div>
+            <label for="day_of_week">Jour de la semaine:</label>
+            <select name="day_of_week" required>
+                {% for value, label in days_of_week %}
+                    <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
         {{ form.as_p }}
         
         <div id="shift-container">
@@ -129,4 +138,4 @@
     </script>
     {% endblock %}
 </body>
-</html>
+</html> 
