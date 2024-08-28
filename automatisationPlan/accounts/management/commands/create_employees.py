@@ -10,7 +10,7 @@ from PIL import Image
 
 class Command(BaseCommand):
     help = 'Crée automatiquement des employés ou des chefs d\'équipe avec des informations différentes'
-
+# Ajouter un argument
     def add_arguments(self, parser):
         parser.add_argument('count', type=int, help='Nombre d\'employés à créer')
         parser.add_argument('--manager', type=int, help='ID du manager qui crée ces employés')
@@ -54,6 +54,8 @@ class Command(BaseCommand):
 
             photo_path = self.generate_random_image()
 
+    # Créer un nouvel utilisateur CustomUser avec les informations générées
+
             custom_user = CustomUser.objects.create_user(
                 username=username,
                 email=email,
@@ -61,7 +63,7 @@ class Command(BaseCommand):
                 first_name=first_name,
                 last_name=last_name,
                 role=role,
-                hours_per_week=40 if role == 'team_lead' else random.choice([20, 30, 35, 40]),
+                hours_per_week=35 if role == 'team_lead' else random.choice([20, 30, 35, 40]),
                 created_by=manager
             )
 
@@ -69,6 +71,8 @@ class Command(BaseCommand):
                 custom_user.photo.save(f'photo_{custom_user.id}.png', File(f), save=True)
 
             os.remove(photo_path)
+            
+    # Pour chaque jour de la semaine, déterminer aléatoirement si l'utilisateur est disponible ce jour-là
 
             for day in days:
                 if random.choice([True, False]):
