@@ -474,28 +474,43 @@ class EmployeeRequirementCreateView(View):
         employees_required = request.POST.getlist('employees_required[]')
 
         if day_of_week and start_times and end_times and employees_required:
-            # Créer un nouvel EmployeeRequirement
-            employee_requirement = EmployeeRequirement.objects.create(
-                user=request.user,
-                day_of_week=day_of_week,
-            )
-
-            # Créer les shifts associés
-            for start_time, end_time, employees in zip(start_times, end_times, employees_required):
-                Shift.objects.create(
-                    employee_requirement=employee_requirement,
-                    start_time=start_time,
-                    end_time=end_time,
-                    employees_required=employees
+            try:
+                # Créer un nouvel EmployeeRequirement
+                employee_requirement = EmployeeRequirement.objects.create(
+                    user=request.user,
+                    day_of_week=day_of_week,
                 )
 
-            messages.success(request, 'Les besoins en employés ont été ajoutés avec succès.')
-            return redirect('manage_employee_requirements')
+                # Créer les shifts associés
+                for start_time, end_time, employees in zip(start_times, end_times, employees_required):
+                    Shift.objects.create(
+                        employee_requirement=employee_requirement,
+                        start_time=start_time,
+                        end_time=end_time,
+                        employees_required=int(employees)
+                    )
+
+                messages.success(request, 'Les besoins en employés ont été ajoutés avec succès.')
+                return redirect('manage_employee_requirements')  # Assurez-vous que ce nom d'URL est correct
+            except Exception as e:
+                print(f"Error creating EmployeeRequirement: {str(e)}")
+                messages.error(request, f'Une erreur est survenue lors de l\'ajout des besoins en employés: {str(e)}')
+        else:
+            messages.error(request, 'Tous les champs doivent être remplis.')
         
-        messages.error(request, 'Tous les champs doivent être remplis.')
-        return redirect('add_employee_requirement')
-
-
+        # Si une erreur s'est produite, redirigez vers la même page
+        return render(request, 'accounts/employee_requirement_form.html', {
+            'days_of_week': [
+                ('Monday', 'Lundi'),
+                ('Tuesday', 'Mardi'),
+                ('Wednesday', 'Mercredi'),
+                ('Thursday', 'Jeudi'),
+                ('Friday', 'Vendredi'),
+                ('Saturday', 'Samedi'),
+                ('Sunday', 'Dimanche'),
+            ],
+            'form_data': request.POST,  # Renvoyer les données du formulaire pour les afficher
+        })
 
 class EmployeeRequirementListView(ListView):
     model = EmployeeRequirement
@@ -507,11 +522,10 @@ class EmployeeRequirementListView(ListView):
         print("DEBUG: queryset:", queryset)  
         return queryset
 
-    
 class EmployeeRequirementUpdateView(UpdateView):
     model = EmployeeRequirement
     template_name = 'accounts/employee_requirement_form.html'
-    fields = ['day_of_week']
+    fields = []
     success_url = reverse_lazy('manage_employee_requirements')
 
     def get_context_data(self, **kwargs):
@@ -529,8 +543,12 @@ class EmployeeRequirementUpdateView(UpdateView):
         return context
 
     def form_valid(self, form):
-        self.object = form.save()
-        
+        self.object = form.save(commit=False)
+        day_of_week = self.request.POST.get('day_of_week')
+        if day_of_week:
+            self.object.day_of_week = day_of_week
+            self.object.save()
+
         shift_ids = self.request.POST.getlist('shift_id[]')
         start_times = self.request.POST.getlist('start_time[]')
         end_times = self.request.POST.getlist('end_time[]')
@@ -542,7 +560,7 @@ class EmployeeRequirementUpdateView(UpdateView):
                 shift = Shift.objects.get(id=int(shift_id))
                 shift.start_time = start_time
                 shift.end_time = end_time
-                shift.employees_required = int(employees_required)
+                shift.employees_required = int(employees_required)  # Assurez-vous que cette ligne est présente
                 shift.save()
             else:
                 # Créer un nouveau shift seulement si tous les champs sont remplis

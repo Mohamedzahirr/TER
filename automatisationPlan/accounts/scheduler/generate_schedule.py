@@ -17,7 +17,6 @@ def generate_schedule(employees, availabilities, constraints, start_date, end_da
     
     print("Début de la création des variables de shift")
 
-
     detailed_messages = []
     
     # Vérifier les disponibilités des employés
@@ -38,14 +37,11 @@ def generate_schedule(employees, availabilities, constraints, start_date, end_da
         if available < required:
             detailed_messages.append(f"Il n'y a pas assez d'employés disponibles le {day}. Requis : {required}, Disponibles : {available}")
 
-    
     model = cp_model.CpModel()
     shifts = {}
     days_of_week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-    detailed_messages = []
 
     # Create shift variables
-    shifts = {}
     for employee in employees:
         print(f"Debug: Processing employee {employee.id}")
         for day_index, day_data in enumerate(constraints['shifts']):
@@ -62,19 +58,22 @@ def generate_schedule(employees, availabilities, constraints, start_date, end_da
                     model.Add(shift == 0)
 
     print("Debug: Shifts keys:", list(shifts.keys()))
+
+
     # Ensure required number of employees per shift with relaxation
-    shift_slacks = {}
     for day_index, day_data in enumerate(constraints['shifts']):
         day, day_shifts = day_data
         for shift_index, (start, end) in enumerate(day_shifts):
             required = constraints['required_employees'][day_index][shift_index]
-            slack = model.NewIntVar(0, len(employees), f'slack_{day}_{shift_index}')
-            shift_slacks[(day, shift_index)] = slack
-            model.Add(sum(shifts.get((e.id, day, shift_index), 0) for e in employees) + slack >= int(required))
+            model.Add(sum(shifts.get((e.id, day, shift_index), 0) for e in employees) == int(required))
 
+    # Ensure at least one team lead per shift
+    for day_index, day_data in enumerate(constraints['shifts']):
+        day, day_shifts = day_data
+        for shift_index, (start, end) in enumerate(day_shifts):
+            team_lead_count = sum(shifts.get((e.id, day, shift_index), 0) for e in employees if getattr(e, 'role', '') == 'team_lead')
+            model.Add(team_lead_count >= 1)
 
-    # Max minutes per day constraint with relaxation
-    day_slacks = {}
     # Max minutes per day constraint with fixed 12-hour limit
     max_minutes_per_day = 12 * 60  # 12 hours in minutes
     for employee in employees:
@@ -98,20 +97,8 @@ def generate_schedule(employees, availabilities, constraints, start_date, end_da
             for day_data in constraints['shifts']
             for day, day_shifts in [day_data]
             for shift_index, (start, end) in enumerate(day_shifts)
-    )
-        # Remove the lower bound constraint
-        # model.Add(weekly_minutes >= max_weekly_minutes - 300)
-        # Keep only the upper bound constraint
+        )
         model.Add(weekly_minutes <= max_weekly_minutes + 300)
-
-
-
-    for day_index, day_data in enumerate(constraints['shifts']):
-        day, day_shifts = day_data
-        for shift_index, (start, end) in enumerate(day_shifts):
-            required = constraints['required_employees'][day_index][shift_index]
-            model.Add(sum(shifts.get((e.id, day, shift_index), 0) for e in employees) == required)
-
 
     # Consecutive rest days constraint with relaxation
     print("Début de l'ajout des contraintes de jours de repos")
@@ -134,31 +121,25 @@ def generate_schedule(employees, availabilities, constraints, start_date, end_da
             model.Add(sum(rest_days) + slack >= min_consecutive_rest_days)
     print("Fin de l'ajout des contraintes de jours de repos")
 
-# Objective: Minimize all slack variables
-# Objective: Minimize all slack variables
+    # Objective: Minimize all slack variables
     model.Minimize(
-        sum(slack for slack in shift_slacks.values()) +
-        sum(slack for slack in day_slacks.values()) +
         sum(slack for slack in rest_slacks.values())
     )
+
     # Solve the model
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = 300.0  # 5 minutes
     solver.parameters.log_search_progress = True
     status = solver.Solve(model)
 
-
     if status == cp_model.INFEASIBLE:
         detailed_messages.append("Le problème est infaisable. Voici les détails :")
         detailed_messages.append(f"Nombre d'employés : {len(employees)}")
         detailed_messages.append(f"Nombre de jours : {len(constraints['shifts'])}")
         
-        # Ajoutez ces informations essentielles
         detailed_messages.append("Contraintes spécifiques :")
-        detailed_messages.append("La 19ème contrainte linéaire est impossible à satisfaire. (Cette contrainte pourrait être liée au nombre minimum d'heures de travail par semaine ou au nombre maximum d'heures de travail par jour pour un employé.)")
-        detailed_messages.append("Cela peut être dû à un conflit entre le nombre d'employés requis et leurs disponibilités.")
+        detailed_messages.append("Une contrainte est impossible à satisfaire. Cela peut être dû à un conflit entre le nombre d'employés requis, leurs disponibilités, ou la contrainte de chef d'équipe.")
         
-        # Information sur l'employé avec disponibilité limitée
         limited_availability_employee = next((e for e in employees if len(availabilities[e.id]) < 7), None)
         if limited_availability_employee:
             detailed_messages.append(f"L'employé {limited_availability_employee.first_name} {limited_availability_employee.last_name} (ID: {limited_availability_employee.id}) n'est disponible que {len(availabilities[limited_availability_employee.id])} jours sur 7.")
@@ -166,7 +147,8 @@ def generate_schedule(employees, availabilities, constraints, start_date, end_da
         detailed_messages.append("Suggestions :")
         detailed_messages.append("1. Vérifiez si vous pouvez réduire le nombre d'employés requis par shift.")
         detailed_messages.append("2. Assurez-vous que tous les employés ont suffisamment de disponibilités.")
-        detailed_messages.append("3. Considérez d'ajouter plus de flexibilité dans les horaires des shifts.")
+        detailed_messages.append("3. Vérifiez que vous avez suffisamment de chefs d'équipe disponibles pour couvrir tous les shifts.")
+        detailed_messages.append("4. Considérez d'ajouter plus de flexibilité dans les horaires des shifts.")
 
         return None, detailed_messages
 
@@ -204,6 +186,3 @@ def generate_schedule(employees, availabilities, constraints, start_date, end_da
     else:
         print(f"Solver status: {solver.StatusName(status)}")
         return None, [f"Statut du solveur : {solver.StatusName(status)}"]
-        
-
-        

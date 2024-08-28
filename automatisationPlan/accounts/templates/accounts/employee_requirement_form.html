@@ -89,7 +89,7 @@
             <label for="day_of_week">Jour de la semaine:</label>
             <select name="day_of_week" required>
                 {% for value, label in days_of_week %}
-                    <option value="{{ value }}">{{ label }}</option>
+                    <option value="{{ value }}" {% if object.day_of_week == value %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
             </select>
         </div>
